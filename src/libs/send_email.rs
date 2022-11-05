@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::config::UserConfig;
 
@@ -8,7 +9,7 @@ use lettre::message::Attachment;
 use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 
-pub async fn send_email<P>(config: &UserConfig, rr_email: &str, path: P) -> Result<()>
+pub async fn send_email<P>(config: Arc<UserConfig>, rr_email: String, path: P) -> Result<()>
 where
     P: AsRef<Path>,
 {
@@ -20,8 +21,8 @@ where
     let att = Attachment::new("pl_data.zip".into()).body(fil_body, content_type);
 
     let email = Message::builder()
-        .from(f_e.parse().unwrap())
-        .to(r_e.parse().unwrap())
+        .from(f_e.parse()?)
+        .to(r_e.parse()?)
         .subject("TJU_TNICL_PL_DATA")
         .singlepart(att)?;
     let creds = Credentials::new(config.email().to_string(), config.pwd().to_string());

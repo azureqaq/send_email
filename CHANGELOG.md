@@ -7,13 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
-## [0.2.1] - 2022-10-29
-### Changed
-- 修改 `GitHub Action` 配置
-- 增加 `build.rs`
-
-
-## [0.1.0] - 2022-10-25
+## [0.1.0] - 2022-11-05
 ### Added
 - 初始化仓库
-- 配置 Github Action
+- 基础功能

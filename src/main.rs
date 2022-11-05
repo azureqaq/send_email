@@ -6,6 +6,7 @@ use simple_logger::SimpleLogger;
 use std::{
     fs::{create_dir_all, remove_dir_all},
     path::Path,
+    sync::Arc,
 };
 
 #[tokio::main]
@@ -40,8 +41,8 @@ async fn mma() -> Result<()> {
             Arg::new("email")
                 .long("email")
                 .short('e')
-                .action(ArgAction::Set)
-                .help("收件人邮箱")
+                .action(ArgAction::Append)
+                .help("收件人邮箱 可以用 -e email1 -e email2 来设置多个")
                 .num_args(1)
                 .required(true),
         )
@@ -69,17 +70,13 @@ async fn mma() -> Result<()> {
     }
 
     // 获取参数
-    let (Some(mut email_addr), Some(mut email_file)) = (mat.get_raw("email"), mat.get_raw("file")) else {
+    let (Some(email_addr), Some(mut email_file)) = (mat.get_raw("email"), mat.get_raw("file")) else {
         return Err(anyhow!("缺少必须参数"));
     };
-    let Some(email_addr) = email_addr.next().unwrap().to_str() else {
-        return Err(anyhow!("无法解析邮件地址"));
-    };
+
     let Some(email_file) = email_file.next().unwrap().to_str() else {
         return Err(anyhow!("无法解析文件地址"));
     };
-
-    log::debug!("\n邮件地址: {}\n邮件文件: {}", email_addr, email_file);
 
     // 是否是zip文件
     if !email_file.ends_with(r#".zip"#) {
@@ -104,10 +101,32 @@ async fn mma() -> Result<()> {
     // 获取用户配置
     let config = get_config(config_path)?;
     log::debug!("发件人配置: {}", config);
+    let config = Arc::new(config);
 
-    // 发送邮件
+    let mut hands = vec![];
+    for email_addr in email_addr {
+        let Some(email_addr) = email_addr.to_str() else {
+            return Err(anyhow!("无法获取邮件地址"));
+        };
 
-    send_email(&config, email_addr, &email_file).await?;
+        let email_addr = email_addr.to_string();
+        let config = config.clone();
+        let email_file = email_file.to_path_buf();
+        hands.push(tokio::spawn(async move {
+            send_email(config, email_addr, email_file).await
+        }));
+    }
 
+    for h in hands.into_iter() {
+        let h = h.await;
+        let Ok(h) = h else {
+            log::error!("无法获取结果");
+            continue;
+        };
+        if let Err(e) = h {
+            log::error!("发送失败 error: {}", e);
+            continue;
+        }
+    }
     Ok(())
 }

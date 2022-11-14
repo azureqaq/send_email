@@ -1,6 +1,6 @@
 [package]
 name = "email"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "a tool for email"
 default-run = "email"
@@ -22,14 +22,14 @@ path = "./src/libs/mod.rs"
 [dependencies]
 log = "0.4.17"
 anyhow = "1.0.65"
-simple_logger = { version = "4.0.0", default-features = false, features = ["colors"] }
+simple_logger = { version = "4.0.0", default-features = false }
 tokio = { version = "1.21.0", features = ["rt-multi-thread", "macros", "parking_lot"], default-features = false }
 toml = "0.5.9"
 # indicatif = "0.17.1"
 # console = "0.15.2"
 # dialoguer = "0.10.2"
 # scraper = "0.13.0"
-clap = {version = "4.0.10", features = ["wrap_help", "std", "color", "suggestions", "cargo"], default-features = false }
+clap = {version = "4.0.10", features = ["wrap_help", "std", "suggestions", "cargo"], default-features = false }
 serde = {version = "1.0.145", features = ["derive"] }
 platform-dirs = "0.3.0"
 lettre = { version = "0.10", features = ["tokio1", "tokio1-native-tls"] }

@@ -13,12 +13,18 @@ pub async fn send_email<P>(config: Arc<UserConfig>, rr_email: String, path: P) -
 where
     P: AsRef<Path>,
 {
+    let path = path.as_ref();
+    let email_file_name = path
+        .file_name()
+        .ok_or_else(|| anyhow!("无法获取文件名"))?
+        .to_str()
+        .ok_or_else(|| anyhow!("无法获取文件名"))?;
     let f_e = format!("TNICL_242 <{}>", config.email());
     let r_e = format!("You <{}>", rr_email);
 
     let fil_body = std::fs::read(path)?;
     let content_type = ContentType::parse("application/pdf").unwrap();
-    let att = Attachment::new("pl_data.zip".into()).body(fil_body, content_type);
+    let att = Attachment::new(email_file_name.into()).body(fil_body, content_type);
 
     let email = Message::builder()
         .from(f_e.parse()?)

@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use clap::{crate_name, crate_version, Arg, ArgAction, Command};
+use clap::{crate_authors, crate_name, crate_version, Arg, ArgAction, Command};
 use libs::{config::get_config, send_email::send_email};
 use platform_dirs::AppDirs;
 use simple_logger::SimpleLogger;
@@ -12,7 +12,6 @@ use std::{
 #[tokio::main]
 async fn main() {
     SimpleLogger::new()
-        .with_colors(true)
         .with_level(log::LevelFilter::Debug)
         .init()
         .unwrap();
@@ -26,9 +25,18 @@ async fn main() {
 async fn mma() -> Result<()> {
     let mat = Command::new(crate_name!())
         .version(crate_version!())
+        .author(crate_authors!())
         .about("发送邮件")
         .arg_required_else_help(true)
-        // .allow_external_subcommands(true)
+        .help_template(
+            "\
+{before-help}{name} {version}
+{author-with-newline}{about-with-newline}
+{usage-heading} {usage}
+
+{all-args}{after-help}
+        ",
+        )
         .arg(
             Arg::new("uninstall")
                 .long("uninstall")
@@ -78,10 +86,10 @@ async fn mma() -> Result<()> {
         return Err(anyhow!("无法解析文件地址"));
     };
 
-    // 是否是zip文件
-    if !email_file.ends_with(r#".zip"#) {
-        return Err(anyhow!("需要一个 zip 文件"));
-    }
+    // // 是否是zip文件
+    // if !email_file.ends_with(r#".zip"#) {
+    //     return Err(anyhow!("需要一个 zip 文件"));
+    // }
 
     let email_file = Path::new(email_file);
     // 判断文件是否存在
